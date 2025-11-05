@@ -43,7 +43,7 @@ global {
 
 
 grid gworld width: x height: y neighbors:4 {
-	rgb color <- #black;
+	rgb color <- [0,3,51];
 	list<gworld> neighbors <- (self neighbors_at 1);
 }
 
@@ -54,7 +54,7 @@ species odorArea{
 }
 species glitterArea{
 	aspect base {
-	  draw square(4) color: #chartreuse border: #black;		
+	  draw square(4) color: #gold border: #black;		
 	}
 }
 species breezeArea{
@@ -64,6 +64,7 @@ species breezeArea{
 }
 
 species pitArea{
+	image_file icon <- image_file('../includes/pit.jpg');
 	gworld place <- one_of(gworld);
 	init {
 		
@@ -79,6 +80,9 @@ species pitArea{
 	
 	aspect base {
 	  draw square(4) color: #blue border: #black;		
+	}
+	aspect icon {
+		draw icon size: 4.0;
 	}
 }
 species wumpusArea{
@@ -275,7 +279,7 @@ experiment Wumpus_experiment_1 type: gui {
 			species glitterArea aspect:base;
 			species wumpusArea aspect:icon;
 			species odorArea aspect:base;
-			species pitArea aspect:base;
+			species pitArea aspect:icon;
 			species breezeArea aspect: base;
 			species player aspect: base;
 		}
