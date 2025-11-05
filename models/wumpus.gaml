@@ -134,6 +134,7 @@ species player skills:[moving] control: simple_bdi {
 	
 	point target;
 	list<point> memory <- [];		// defines the memory of the player 
+	gworld previous_cell;
 	
 	// Init --------------------------------------------------------------------------------------
 	
@@ -208,6 +209,7 @@ species player skills:[moving] control: simple_bdi {
 	// Plans --------------------------------------------------------------------------------------
 	
 	plan move_random intention: patrol {
+		previous_cell <- place;
 		gworld new_place <- one_of(place.neighbors); // random selection from the neighbors
 		place <- new_place;
 		location <- new_place.location;
@@ -232,10 +234,24 @@ species player skills:[moving] control: simple_bdi {
 	    }
 	}
 	plan escape_pit intention: avoid_pit {
+		gworld new_place <- previous_cell;
+		place <- new_place;
+		location <- new_place.location;
 		
+		// back to patrol
+		do remove_belief(feel_pit);
+		do remove_intention(avoid_pit);
+		do add_intention(patrol);
 	}
 	plan escape_wumpus intention: avoid_wumpus {
+		gworld new_place <- previous_cell;
+		place <- new_place;
+		location <- new_place.location;
 		
+		// back to patrol
+		do remove_belief(feel_wumpus);
+		do remove_intention(avoid_wumpus);
+		do add_intention(patrol);
 	}
 	
 	// Aspect --------------------------------------------------------------------------------------
