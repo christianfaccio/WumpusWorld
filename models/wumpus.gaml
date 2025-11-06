@@ -9,18 +9,16 @@ model wumpus
 global {
 	int x <- 25;
 	int y <- 25;
-	int n_gold <- 1;
+	int n_gold <- 2;
 	int n_wumpus <- 1;
 	int n_pit <- 3;
 	int n_players <- 1;
 	
 	// BELIEFS
-	string feel_glitter <- "feel_glitter";
-	predicate feel_gold <- new_predicate(feel_glitter);
-	string feel_odor <- "feel_odor";
-	predicate feel_wumpus <- new_predicate(feel_odor);
-	string feel_breeze <- "feel_breeze";
-	predicate feel_pit <- new_predicate(feel_breeze);
+	predicate want_to_patrol <- new_predicate("want_to_patrol");
+	predicate feel_glitter <- new_predicate("feel_glitter");
+	predicate feel_odor <- new_predicate("feel_odor");
+	predicate feel_breeze <- new_predicate("feel_breeze");
 	
 	// DESIRES
 	predicate patrol <- new_predicate("patrol");
@@ -34,10 +32,6 @@ global {
 		create wumpusArea number: n_wumpus;
 		create pitArea number: n_pit;
 		create player number: n_players;
-	}
-	
-	reflex end_simulation when: (n_players = 0) or (n_gold = 0) {
-		do pause;
 	}
 }
 
@@ -146,117 +140,156 @@ species player skills:[moving] control: simple_bdi {
 		location <- place.location;
 		//memory <+ place.location; // needed for ADVANCED concepts
 		
-		do add_desire(patrol); // initialize agent with desire to go around (patrol)
+		do add_belief(want_to_patrol); // initialize agent with belief to go around (patrol)
 	}
 	
 	// Reflexes --------------------------------------------------------------------------------------
 	
-
+	
 	
 	// Perceptions --------------------------------------------------------------------------------------
 	
-	perceive gold target: goldArea in: 0.1 {
+	perceive gold target: goldArea in: 0.0 {
+		write "perceive: gold";
 	    list<glitterArea> glitters_to_remove <- self.my_glitters;
 	    
 	    ask myself {
-	        do remove_belief(feel_gold);
-	        do remove_intention(collect_gold, false);
+	    	do remove_intention(collect_gold);
+	        do remove_belief(feel_glitter);
+	        do add_belief(want_to_patrol);
+	        do add_desire(patrol);
+	        do add_intention(patrol);
 	        n_gold <- n_gold - 1;
 	        memory <- [];
-	        do add_desire(patrol);
 	    }
 	    
 	    ask glitters_to_remove {
 	        do die;
 	    }
 	    
-	    do die;  
+	    if (n_gold = 0) {
+	    	ask world {
+	    		do pause;
+	    	}
+	    } 
+	    do die; 
 	}
-	perceive wumpus target: wumpusArea in: 0.1{
+	perceive wumpus target: wumpusArea in: 0.0{
+		write "perceive: wumpus";
 		ask myself {
 			n_players <- 0;
+			ask world {
+				do pause;
+			}
 			do die;
 		}
 	}
-	perceive pit target: pitArea in: 0.1{
+	perceive pit target: pitArea in: 0.0{
+		write "perceive: pit";
 		ask myself {
 			n_players <- 0;
-			do die;
+			
+			ask world {
+				do pause;
+			}
+	    	
+	    	do die;
 		}
 	}
-	perceive glitter target: glitterArea in: 0.1{
-		focus id: feel_glitter;
+	perceive glitter target: glitterArea in: 0.0{
+		write "perceive: glitter";
 		ask myself {
-			do remove_intention(patrol, false);
+			do remove_intention(patrol, true);
+			do remove_belief(want_to_patrol);
+			do add_belief(feel_glitter);
+			do add_desire(collect_gold);
+			do add_intention(collect_gold);
 		}
 	}
-	perceive odor target: odorArea in: 0.1{
-		focus id: feel_odor; 
+	perceive odor target: odorArea in: 0.0{
+		write "perceive: odor";
 		ask myself {
-			do remove_intention(patrol, false);
+			do remove_intention(patrol, true);
+			do remove_belief(want_to_patrol);
+			do add_belief(feel_odor);
+			do add_desire(avoid_wumpus);
+			do add_intention(avoid_wumpus);
 		}
 	}
-	perceive breeze target: breezeArea in: 0.1{
-		focus id: feel_breeze;
+	perceive breeze target: breezeArea in: 0.0{
+		write "perceive: breeze";
 		ask myself {
-			do remove_intention(patrol, false);
+			do remove_intention(patrol, true);
+			do remove_belief(want_to_patrol);
+			do add_belief(feel_breeze);
+			do add_desire(avoid_pit);
+			do add_intention(avoid_pit);
 		}
 	}
 	
 	// Rules --------------------------------------------------------------------------------------
 	
-	// TODO: check for strength correctness
-	rule belief: feel_gold new_desire: collect_gold strength: 3.0;
-	rule belief: feel_pit new_desire: avoid_pit strength: 1.0;
-	rule belief: feel_wumpus new_desire: avoid_wumpus strength: 2.0;
+	rule belief: want_to_patrol new_desire: patrol strength: 0.5;
+	rule belief: feel_glitter new_desire: collect_gold strength: 3.0;
+	rule belief: feel_breeze new_desire: avoid_pit strength: 1.0;
+	rule belief: feel_odor new_desire: avoid_wumpus strength: 2.0;
 	
 	// Plans --------------------------------------------------------------------------------------
 	
 	plan move_random intention: patrol {
-		previous_cell <- place;
-		gworld new_place <- one_of(place.neighbors); // random selection from the neighbors
-		place <- new_place;
-		location <- new_place.location;
-		//memory <+ location;
-	}
+        write "plan: patrol";
+        previous_cell <- place;  // Store current position before moving
+        gworld new_place <- one_of(place.neighbors);
+        place <- new_place;
+        location <- new_place.location;
+    }
 	plan get_gold intention: collect_gold {
-	    if (length(memory) = 0) {
-	        loop neighbor over: place.neighbors {
-	            memory <+ neighbor.location;
-	        }
-	    }
-	    
-	    if (length(memory) > 0) {
-	        point next_location <- memory[0];
-	        place <- gworld(next_location);  
-	        location <- next_location;        
-	        memory >- first(memory);          
-	    } else {
-	        do remove_belief(feel_gold);
-	        do remove_intention(collect_gold, false);
-	        do add_desire(patrol);
-	    }
-	}
+        write "plan: get gold";
+        if (length(memory) = 0) {
+            loop neighbor over: place.neighbors {
+                memory <+ neighbor.location;
+            }
+        }
+        
+        if (length(memory) > 0) {
+            previous_cell <- place;  // Store before moving
+            point next_location <- memory[0];
+            place <- gworld(next_location);  
+            location <- next_location;        
+            memory >- first(memory);          
+        } else {
+            do remove_belief(feel_glitter);
+            do add_belief(want_to_patrol);
+        }
+    }
 	plan escape_pit intention: avoid_pit {
-		gworld new_place <- previous_cell;
-		place <- new_place;
-		location <- new_place.location;
-		
-		// back to patrol
-		do remove_belief(feel_pit);
-		do remove_intention(avoid_pit);
-		do add_intention(patrol);
-	}
+        write "plan: escape_pit";
+        if (previous_cell != nil and previous_cell != place) {
+            place <- previous_cell;
+            location <- previous_cell.location;
+        }
+        
+        // Clear the danger belief after escaping
+        do remove_intention(avoid_pit);
+        do remove_belief(feel_breeze);
+        do add_belief(want_to_patrol);
+        do add_desire(patrol);
+        do add_intention(patrol);
+    }
 	plan escape_wumpus intention: avoid_wumpus {
-		gworld new_place <- previous_cell;
-		place <- new_place;
-		location <- new_place.location;
-		
-		// back to patrol
-		do remove_belief(feel_wumpus);
-		do remove_intention(avoid_wumpus);
-		do add_intention(patrol);
-	}
+        write "plan: escape wumpus";
+        if (previous_cell != nil and previous_cell != place) {
+            place <- previous_cell;
+            location <- previous_cell.location;
+        }
+        
+        // Clear the danger belief after escaping
+        do remove_intention(avoid_wumpus);
+        do remove_belief(feel_odor);
+        do add_belief(want_to_patrol);
+        do add_desire(patrol);
+        do add_intention(patrol);
+    }
 	
 	// Aspect --------------------------------------------------------------------------------------
 	
@@ -265,7 +298,7 @@ species player skills:[moving] control: simple_bdi {
 	}
 }
 
-experiment Wumpus_experiment_1 type: gui {
+experiment test type: gui {
 	parameter "Grid x:" var: x min: 0 max: 1000;
 	parameter "Grid y:" var: y min: 0 max: 1000;
 	parameter "Number of gold spots:" var: n_gold min: 1;
