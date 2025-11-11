@@ -15,7 +15,6 @@ global {
 	int n_players <- 1;
 	float weight <- 1.0;
 	int final_cycle <- 0;
-	bool dynamic_wumpus <- false;
 	
 	// output
 	int won <- 0;
@@ -100,23 +99,6 @@ species wumpusArea{
 		loop i over: place.neighbors {
 			create odorArea{
 				location <- i.location;
-			}
-		}
-	}
-	reflex move {
-		if (dynamic_wumpus = true) {	
-			gworld choosen_neighbor <- one_of(place.neighbors);
-			loop i over: place.neighbors {
-				ask odorArea{
-					do die;
-				}
-			}
-			place <- choosen_neighbor;
-			location <- choosen_neighbor.location;
-			loop i over: place.neighbors {
-				create odorArea{
-					location <- i.location;
-				}
 			}
 		}
 	}
@@ -345,24 +327,13 @@ experiment test type: gui {
 	}
 }
 
-experiment grid_size type: batch until: (won=1 or lost=1 or final_cycle>10000) repeat: 20 {
-	parameter "Grid size" var: x min: 20 max: 50 step:5;
+experiment grid_size type: batch until: (n_gold=0 or n_players=0 or cycle>10000) repeat: 2 {
+	parameter "Grid size" var: x min: 20 max: 100 step:2;
 	
 	reflex save_results {
 		ask simulations {
-			save [x, won, lost, n_gold, final_cycle] 
-			to: "../analysis/results/grid_size_results.csv" format: "csv" rewrite: false;
-		}
-	}	
-}
-experiment grid_size_stochastic type: batch until: (won=1 or lost=1 or final_cycle>10000) repeat: 20 {
-	parameter "Grid size" var: x min: 20 max: 50 step:5;
-	parameter "Weight" var: weight init: 0.95;
-	
-	reflex save_results {
-		ask simulations {
-			save [x, won, lost, n_gold, final_cycle] 
-			to: "../analysis/results/grid_size_results_stochastic.csv" format: "csv" rewrite: false;
+			save [won, lost, n_gold, cycle] 
+			to: "grid_size_stochastic.csv" format: "csv" rewrite: false;
 		}
 	}	
 }
@@ -374,18 +345,6 @@ experiment weight type: batch until: (won=1 or lost=1 or final_cycle>10000) repe
 		ask simulations {
 			save [weight, won, lost, n_gold, final_cycle] 
 			to: "../analysis/results/weight_results.csv" format: "csv" rewrite: false;
-		}
-	}
-}
-
-experiment dynamic_wumpus type: batch until: (won=1 or lost=1 or final_cycle>10000) repeat: 20 {
-	parameter "Weight" var: weight min: 0.5 max: 1.0 step: 0.05;
-	parameter "Dynamic Wumpus" var: dynamic_wumpus init: true;
-	
-	reflex save_results {
-		ask simulations {
-			save [weight, won, lost, n_gold, final_cycle] 
-			to: "../analysis/results/weight_dyn_wum_results.csv" format: "csv" rewrite: false;
 		}
 	}
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Experiment_plan>
+    <Simulation experiment="analysis" sourcePath="models/wumpus.gaml" finalStep="500">
+        <Parameters>
+            <Parameter name="x" type="INT" value="50"/>
+            <Parameter name="y" type="INT" value="50"/>
+            <Parameter name="n_gold" type="INT" value="2"/>
+            <Parameter name="n_wumpus" type="INT" value="1"/>
+            <Parameter name="n_pit" type="INT" value="3"/>
+        </Parameters>
+        <Outputs>
+            <Output id="1" name="output.csv" framerate="1"/>
+        </Outputs>
+    </Simulation>
+</Experiment_plan>
