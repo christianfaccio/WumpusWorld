@@ -62,7 +62,7 @@ The plans the player has to follow are essentially three:
 
 \section{Analysis}
 
-Different are the analysis one can carry on for this game. As an example, one can analyze the success rate for different weights in the exploratory player, or analyze the cost in terms of total number of moves increasing the grid size. I started from the naive player and for him there is only one analysis I could have done: see if increasing the grid size and keeping everything else fixed the number of total moves increases or not. As expected, it increases linearly, as shown in Fig. \ref{fig:1}.
+Different are the analyses one can carry on for this game. As an example, one can analyze the success rate for different weights in the exploratory player, or analyze the cost in terms of total number of moves increasing the grid size. I started from the naive player and for him there is only one analysis I could have done: see if increasing the grid size and keeping everything else fixed the number of total moves increases or not. As expected, it does, as shown in Fig. \ref{fig:1}.
 
 \begin{figure}[h]
 \centering
@@ -81,11 +81,11 @@ Different are the analysis one can carry on for this game. As an example, one ca
 \end{minipage}
 \end{figure}
 
-I capped the total number of moves to 10000 so that the simulation would not run forever in case the player was not able to collect all the gold. Moreover, I ran 80 simulations for the values of grid size from 20 to 100 with step 1 (always keeping a square for simplicity). 
+I ran 7 simulations for the values of grid size from 20 to 50 with step 5 (always keeping a square for simplicity). 
 
-For the exploratory player instead, many more analysis could have been carried on. The first and most intuitive is the same as before, but this time showing also the total winnings and losses. For this I selected a weight for the previous cell of 0.7, dividing uniformly the rest between the other three neighboring cells. The results are shown in Fig. \ref{fig:2}.
+For the exploratory player instead, many more analyses could have been carried on. The first and most intuitive is the same as before. For this I selected a weight for the previous cell of 0.95, dividing uniformly the rest between the other three neighboring cells. The results are shown in Fig. \ref{fig:2}.
 
-As expected, the number of moves increases but on lower grids it is more stable. Moreover, the player is able to win more in lower grids, again as expected. 
+As expected, the number of moves increases but with a slower pace than the naive player, given that he explores more and falls into dangers more often. 
 
 Another interesting analysis is to see the effect of varying the weight of the previous cell on the success rate of the player. One should expect that increasing the weight should increase the success rate (since it approaches the naive player), but at the same time the average number of moves should also increase. The results are shown in Fig. \ref{fig:3}.
 
@@ -110,5 +110,7 @@ Since it was appealing to see how a dynamic wumpus would have affected the game,
 \caption{Cycle vs Grid Size with Dynamic Wumpus}
 \label{fig:5}
 \end{figure}
+
+We can notice that the player this time effectively looses more often, confirming the expectations, and the number of moves is much lower than before, indicating that the player often encounters the wumpus early in the game.
 
 \end{document}

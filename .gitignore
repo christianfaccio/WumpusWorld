@@ -1,8 +1,9 @@
 .project
 .settings
-.eps
-.cls 
-.aux
-.log
-.bst
-.xml
+*.eps
+*.cls 
+*.aux
+*.log
+*.bst
+*.xml
+*.gz
